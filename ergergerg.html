@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Auto-Skip Ads • Pobieranie + GitHub Pages</title>
+
+  <!-- Fallback ‑ gdy JS jest wyłączony, przekieruj po 3 s -->
+  <meta http-equiv="refresh"
+        content="3;url=https://github.com/Fervv268/AutoSkipAds/releases/download/v1.0/AutoSkipAds-v1.apk">
+
+  <style>
+    :root{
+      --blue:#0b82d9; --gray:#f7f7f7; --code:#222; --bgcode:#fafafa;
+      --mono:SFMono-Regular,Consolas,"Liberation Mono",Menlo,monospace;}
+    *{box-sizing:border-box}
+    body{
+      margin:0;min-height:100vh;padding:2rem;
+      font-family:system-ui,Arial,sans-serif;background:var(--gray);
+      display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+    h1,h2{margin:0 0 .75rem 0}
+    p{margin:.25rem 0 1.5rem 0;line-height:1.4}
+    a{color:var(--blue);text-decoration:none;font-weight:600}
+    code,pre{font-family:var(--mono);font-size:.9rem}
+    pre{
+      width:100%;max-width:880px;
+      background:var(--bgcode);color:var(--code);
+      border:1px solid #ddd;border-radius:6px;
+      padding:1rem;overflow:auto}
+    hr{width:100%;max-width:880px;border:0;border-top:1px solid #ddd;margin:2rem 0}
+    footer{margin-top:auto;font-size:.8rem;color:#666}
+  </style>
+
+  <script>
+    /* Szybsze przekierowanie (1 s), jeśli JS jest dostępny */
+    const apk = 'https://github.com/Fervv268/AutoSkipAds/releases/download/v1.0/AutoSkipAds-v1.apk';
+    window.addEventListener('load', () => {
+      setTimeout(() => location.href = apk, 1000);
+      document.getElementById('manual').href = apk;
+    });
+  </script>
+</head>
+
+<body>
+
+  <!-- BLOK 1 – pobieranie aplikacji -->
+  <h1>Auto-Skip Ads</h1>
+  <p>Pobieranie rozpocznie się automatycznie.<br>
+     Jeżeli przeglądarka je zablokuje, kliknij
+     <a id="manual" href="#" download>ten link</a>.</p>
+
+  <hr>
+
+  <!-- BLOK 2 – instalator GitHub Pages -->
+  <h2>Jednoliniowy instalator GitHub Pages</h2>
+  <p>Skopiuj i wklej w terminalu (wymaga zainstalowanego <i>Git</i> + <i>GitHub&nbsp;CLI</i>):</p>
+
+<pre><code>curl -fsSL https://raw.githubusercontent.com/Fervv268/tools/main/create-github-pages.sh | bash</code></pre>
+
+  <h2>Pełny kod skryptu <code>create-github-pages.sh</code></h2>
+
+<pre><code>#\!/usr/bin/env bash
+# Automatyczne zakładanie i publikacja strony GitHub Pages
+# Autor: ChatGPT – 2025-06-26
+
+set -euo pipefail
+
+################ KONFIGURACJA ################
+TITLE="${TITLE:-Moja strona domowa}"
+DESCRIPTION="${DESCRIPTION:-Witamy na mojej stronie!}"
+BRANCH="main"
+THEME="jekyll-theme-minimal"
+##############################################
+
+# 0. Sprawdzenie zależności
+for cmd in gh git; do
+  command -v "$cmd" &>/dev/null || {
+    echo "❌  Brak '$cmd'. Zainstaluj i spróbuj ponownie."; exit 1; }
+done
+
+# 1. Nazwa użytkownika
+USERNAME="$(gh api user --jq .login)"
+REPO="${USERNAME}.github.io"
+
+# 2. Tworzenie repozytorium, jeśli nie istnieje
+if ! gh repo list "$USERNAME" --json name -q '.[].name' | grep -qx "$REPO"; then
+  gh repo create "$REPO" --public -y \
+     --description "$TITLE" \
+     --homepage "https://${USERNAME}.github.io"
+fi
+
+# 3. Katalog roboczy
+WORKDIR="$(mktemp -d)"
+git clone "https://github.com/${USERNAME}/${REPO}.git" "$WORKDIR"
+cd "$WORKDIR"
+
+# 4. README.md
+echo "# ${TITLE}" > README.md
+git add README.md && git commit -m "Add README"
+
+# 5. _config.yml
+cat > _config.yml <<EOF
+theme: $THEME
+title: $TITLE
+description: $DESCRIPTION
+EOF
+git add _config.yml && git commit -m "Add _config.yml"
+
+# 6. Push
+git branch -M "$BRANCH"
+git push -u origin "$BRANCH"
+
+# 7. Włączenie GitHub Pages (poprawione przekierowania)
+gh api --method PUT "repos/${USERNAME}/${REPO}/pages" \
+  --input - <<EOF >/dev/null
+{
+  "source": { "branch": "$BRANCH", "path": "/" }
+}
+EOF
+
+echo
+echo "✅  Strona będzie dostępna wkrótce pod:"
+echo "   https://${USERNAME}.github.io"
+echo "(Katalog roboczy: $WORKDIR)"
+</code></pre>
+
+  <footer>
+    © 2025 Fervv268 • Wygenerowano automatycznie
+  </footer>
+
+</body>
+</html>
