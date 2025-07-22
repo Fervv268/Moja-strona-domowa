@@ -1,132 +1,173 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Auto-Skip Ads • Pobieranie + GitHub Pages</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>CineBaza Pro Advanced</title>
 
-  <!-- Fallback ‑ gdy JS jest wyłączony, przekieruj po 3 s -->
-  <meta http-equiv="refresh"
-        content="3;url=https://github.com/Fervv268/AutoSkipAds/releases/download/v1.0/AutoSkipAds-v1.apk">
-
+  <!-- Wbudowany ciemny motyw Netflix-style -->
   <style>
-    :root{
-      --blue:#0b82d9; --gray:#f7f7f7; --code:#222; --bgcode:#fafafa;
-      --mono:SFMono-Regular,Consolas,"Liberation Mono",Menlo,monospace;}
-    *{box-sizing:border-box}
-    body{
-      margin:0;min-height:100vh;padding:2rem;
-      font-family:system-ui,Arial,sans-serif;background:var(--gray);
-      display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
-    h1,h2{margin:0 0 .75rem 0}
-    p{margin:.25rem 0 1.5rem 0;line-height:1.4}
-    a{color:var(--blue);text-decoration:none;font-weight:600}
-    code,pre{font-family:var(--mono);font-size:.9rem}
-    pre{
-      width:100%;max-width:880px;
-      background:var(--bgcode);color:var(--code);
-      border:1px solid #ddd;border-radius:6px;
-      padding:1rem;overflow:auto}
-    hr{width:100%;max-width:880px;border:0;border-top:1px solid #ddd;margin:2rem 0}
-    footer{margin-top:auto;font-size:.8rem;color:#666}
+  :root{--red:#e50914;--bg:#141414;--fg:#fff;--fg-muted:#aaa}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;color:var(--fg)}
+  body{background:var(--bg);min-height:100vh;overflow-x:hidden}
+  a,button{cursor:pointer;border:none;background:none;color:inherit;text-decoration:none}
+  /* --- NAVBAR --- */
+  .navbar{display:flex;align-items:center;justify-content:space-between;
+          background:#000;padding:.6rem 1rem;position:sticky;top:0;z-index:100}
+  .logo{font-size:1.4rem;font-weight:700;color:var(--red)}
+  .nav-links{display:flex;gap:1rem;list-style:none}
+  .nav-links a{transition:.2s}
+  .nav-links a:hover{color:var(--red)}
+  .hamburger{display:none;flex-direction:column;gap:4px}
+  .hamburger span{width:22px;height:3px;background:var(--fg)}
+  /* --- DRAWER --- */
+  .mobile-drawer{position:fixed;top:0;right:-260px;width:260px;height:100%;
+                 background:#000;transition:.3s;padding-top:2.5rem;z-index:150}
+  .mobile-drawer a{display:block;padding:.9rem 1.5rem;border-bottom:1px solid #222}
+  .drawer-open{right:0!important}
+  /* --- SEARCH BAR --- */
+  #search{display:flex;align-items:center;gap:.6rem;padding:.8rem 1rem;background:#222}
+  #search input{flex:1;padding:.5rem;border-radius:4px;border:none}
+  #suggestions{position:absolute;top:52px;left:1rem;right:1rem;
+               background:#333;list-style:none;border-radius:0 0 4px 4px;max-height:260px;overflow:auto}
+  #suggestions li{padding:.55rem .8rem;border-bottom:1px solid #444}
+  #suggestions li:hover{background:#444}
+  /* --- GRIDS & CARDS --- */
+  .content-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+                gap:.9rem;padding:1rem}
+  .card{background:#202020;border-radius:4px;overflow:hidden;text-align:center}
+  .card img{width:100%;height:225px;object-fit:cover}
+  .card h3{font-size:.9rem;padding:.5rem}
+  .card button{margin:.6rem .6rem .9rem;background:var(--red);padding:.4rem .8rem;border-radius:4px}
+  /* --- LOADING SCREEN --- */
+  #loadingScreen{position:fixed;inset:0;background:#000;display:flex;
+                 flex-direction:column;align-items:center;justify-content:center;gap:1rem;z-index:500}
+  .loading-logo{font-size:2rem;color:var(--red)}
+  .loading-spinner{width:32px;height:32px;border:4px solid #444;border-top-color:var(--red);
+                   border-radius:50%;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  /* --- TOAST --- */
+  #toastContainer{position:fixed;bottom:1rem;right:1rem;display:flex;flex-direction:column;gap:.6rem;z-index:500}
+  .toast{background:#222;padding:.7rem 1rem;border-left:4px solid var(--red);border-radius:4px;animation:fadein .4s}
+  @keyframes fadein{from{opacity:0;transform:translateX(20px)}to{opacity:1}}
+  /* --- MEDIA --- */
+  @media(max-width:800px){
+    .nav-links{display:none}
+    .hamburger{display:flex}
+  }
   </style>
-
-  <script>
-    /* Szybsze przekierowanie (1 s), jeśli JS jest dostępny */
-    const apk = 'https://github.com/Fervv268/AutoSkipAds/releases/download/v1.0/AutoSkipAds-v1.apk';
-    window.addEventListener('load', () => {
-      setTimeout(() => location.href = apk, 1000);
-      document.getElementById('manual').href = apk;
-    });
-  </script>
 </head>
-
 <body>
+  <!-- LOADING -->
+  <div id="loadingScreen"><div class="loading-logo">CineBaza</div><div class="loading-spinner"></div></div>
 
-  <!-- BLOK 1 – pobieranie aplikacji -->
-  <h1>Auto-Skip Ads</h1>
-  <p>Pobieranie rozpocznie się automatycznie.<br>
-     Jeżeli przeglądarka je zablokuje, kliknij
-     <a id="manual" href="#" download>ten link</a>.</p>
+  <!-- NAV -->
+  <nav class="navbar">
+    <div class="logo">🎬 CineBaza</div>
+    <ul class="nav-links">
+      <li><a href="#movies">Filmy</a></li>
+      <li><a href="#series">Seriale</a></li>
+      <li><a href="#profile">Profil</a></li>
+    </ul>
+    <div id="hamburger" class="hamburger"><span></span><span></span><span></span></div>
+  </nav>
 
-  <hr>
+  <!-- DRAWER -->
+  <div id="drawer" class="mobile-drawer">
+    <a href="#movies">🎬 Filmy</a>
+    <a href="#series">📺 Seriale</a>
+    <a href="#profile">👤 Profil</a>
+  </div>
 
-  <!-- BLOK 2 – instalator GitHub Pages -->
-  <h2>Jednoliniowy instalator GitHub Pages</h2>
-  <p>Skopiuj i wklej w terminalu (wymaga zainstalowanego <i>Git</i> + <i>GitHub&nbsp;CLI</i>):</p>
+  <!-- SEARCH (tekst + głos) -->
+  <section id="search">
+    <button id="voiceBtn" title="Głos">🎤</button>
+    <input id="textSearch" placeholder="Szukaj filmów, aktorów…" autocomplete="off">
+    <ul id="suggestions"></ul>
+  </section>
 
-<pre><code>curl -fsSL https://raw.githubusercontent.com/Fervv268/tools/main/create-github-pages.sh | bash</code></pre>
+  <!-- WYNIKI -->
+  <section id="results" class="content-grid"></section>
 
-  <h2>Pełny kod skryptu <code>create-github-pages.sh</code></h2>
+  <!-- TOAST -->
+  <div id="toastContainer"></div>
 
-<pre><code>#\!/usr/bin/env bash
-# Automatyczne zakładanie i publikacja strony GitHub Pages
-# Autor: ChatGPT – 2025-06-26
+  <!-- JS -->
+  <script>
+  /* ---------- KONFIG ---------- */
+  const CONFIG = {
+    APIS: {
+      TMDB: {KEY:'TU_WSTAW_SWÓJ_TMDB_API_KEY'}
+    },
+    STREAM:'https://vidsrc.cc/v2/embed/'
+  };
 
-set -euo pipefail
+  /* ---------- NAWIGACJA ---------- */
+  const hamb = document.getElementById('hamburger'),
+        drawer = document.getElementById('drawer');
+  hamb.onclick = () => drawer.classList.toggle('drawer-open');
 
-################ KONFIGURACJA ################
-TITLE="${TITLE:-Moja strona domowa}"
-DESCRIPTION="${DESCRIPTION:-Witamy na mojej stronie!}"
-BRANCH="main"
-THEME="jekyll-theme-minimal"
-##############################################
+  /* ---------- TOAST ---------- */
+  const toast = msg=>{
+    const n=document.createElement('div');n.className='toast';n.textContent=msg;
+    document.getElementById('toastContainer').append(n);
+    setTimeout(()=>n.remove(),3500);
+  };
 
-# 0. Sprawdzenie zależności
-for cmd in gh git; do
-  command -v "$cmd" &>/dev/null || {
-    echo "❌  Brak '$cmd'. Zainstaluj i spróbuj ponownie."; exit 1; }
-done
+  /* ---------- WYSZUKIWARKA TEKST ---------- */
+  const inp = document.getElementById('textSearch'),
+        sugg = document.getElementById('suggestions'),
+        grid = document.getElementById('results');
+  let ctrl;                              // AbortController
 
-# 1. Nazwa użytkownika
-USERNAME="$(gh api user --jq .login)"
-REPO="${USERNAME}.github.io"
+  inp.addEventListener('input',async e=>{
+    const q=e.target.value.trim();
+    sugg.innerHTML=''; if(!q) return;
+    ctrl&&ctrl.abort(); ctrl=new AbortController();
+    const r=await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${CONFIG.APIS.TMDB.KEY}&query=${encodeURIComponent(q)}`,{signal:ctrl.signal});
+    const j=await r.json();
+    sugg.innerHTML=j.results.slice(0,6).map(i=>`<li>${i.title||i.name}</li>`).join('');
+  });
 
-# 2. Tworzenie repozytorium, jeśli nie istnieje
-if ! gh repo list "$USERNAME" --json name -q '.[].name' | grep -qx "$REPO"; then
-  gh repo create "$REPO" --public -y \
-     --description "$TITLE" \
-     --homepage "https://${USERNAME}.github.io"
-fi
+  sugg.onclick=e=>{
+    if(e.target.tagName!=='LI')return;
+    inp.value=e.target.textContent; sugg.innerHTML=''; search(inp.value);
+  };
 
-# 3. Katalog roboczy
-WORKDIR="$(mktemp -d)"
-git clone "https://github.com/${USERNAME}/${REPO}.git" "$WORKDIR"
-cd "$WORKDIR"
+  /* ---------- WYSZUKIWANIE GŁOSOWE ---------- */
+  const voiceBtn=document.getElementById('voiceBtn');
+  if('webkitSpeechRecognition'in window||'SpeechRecognition'in window){
+    const Rec=window.SpeechRecognition||window.webkitSpeechRecognition;
+    const rec=new Rec(); rec.lang='pl-PL';
+    voiceBtn.onclick=()=>rec.start();
+    rec.onresult=e=>{
+      inp.value=e.results[0][0].transcript; search(inp.value);
+    };
+  }else voiceBtn.style.display='none';
 
-# 4. README.md
-echo "# ${TITLE}" > README.md
-git add README.md && git commit -m "Add README"
+  /* ---------- SZUKAJ I WYŚWIETL ---------- */
+  async function search(q){
+    toast(`Szukam „${q}”…`);
+    grid.innerHTML='';
+    const r=await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${CONFIG.APIS.TMDB.KEY}&query=${encodeURIComponent(q)}`);
+    const j=await r.json();
+    grid.innerHTML=j.results.map(it=>card(it)).join('')||'<p style="grid-column:1/-1">Brak wyników</p>';
+  }
+  const img=(p)=>p?`https://image.tmdb.org/t/p/w300${p}`:'https://via.placeholder.com/300x450/202020/ffffff?text=Brak+okładki';
 
-# 5. _config.yml
-cat > _config.yml <<EOF
-theme: $THEME
-title: $TITLE
-description: $DESCRIPTION
-EOF
-git add _config.yml && git commit -m "Add _config.yml"
+  const card=it=>`<div class="card">
+      <img src="${img(it.poster_path)}" alt="">
+      <h3>${it.title||it.name}</h3>
+      <button onclick="play(${it.id})">▶ Odtwórz</button>
+    </div>`;
 
-# 6. Push
-git branch -M "$BRANCH"
-git push -u origin "$BRANCH"
+  /* ---------- ODTWARZANIE ---------- */
+  function play(id){
+    window.open(CONFIG.STREAM+id,'_blank');
+  }
 
-# 7. Włączenie GitHub Pages (poprawione przekierowania)
-gh api --method PUT "repos/${USERNAME}/${REPO}/pages" \
-  --input - <<EOF >/dev/null
-{
-  "source": { "branch": "$BRANCH", "path": "/" }
-}
-EOF
-
-echo
-echo "✅  Strona będzie dostępna wkrótce pod:"
-echo "   https://${USERNAME}.github.io"
-echo "(Katalog roboczy: $WORKDIR)"
-</code></pre>
-
-  <footer>
-    © 2025 Fervv268 • Wygenerowano automatycznie
-  </footer>
-
+  /* ---------- LOADING SCREEN ---------- */
+  window.addEventListener('load',()=>document.getElementById('loadingScreen').style.display='none');
+  </script>
 </body>
 </html>
